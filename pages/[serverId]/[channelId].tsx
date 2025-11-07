@@ -207,21 +207,21 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     [channelId, apiUtils],
   );
 
-  // [TODO]
+  // [TODO] parnika
   // Implement real-time updates for messages and reactions from the database.
-  //
+  // 
   // This functionality allows the app to respond to inserts, updates, and deletions
   // from the `message` database table as they happen in real-time, and just inserts and
   // deletions from the `reaction` database table as they happen in real-time. Note that
   // events should triiger *only if* the message / reaction's channel ID matches the current
   // channel ID (in `channelId`).
-  //
+  // 
   // You will need to choose the correct Supabase realtime method to listen for these events.
-  //
+  // 
   // The notes below describe how your app should respond upon each of these events per table. Note
   // that if the instructions mention cache operations, all of these functions have already been
   // defined for you above.
-  //
+  // 
   // 1. `message` table:
   //    - On INSERT:
   //        - Parse the new message draft from the payload. If the message author is *NOT* the
@@ -260,7 +260,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     );
   };
 
-  // [TODO]
+  // [TODO] parnika
   // Implement real-time updates for user's online status as they join and leave the app.
   //
   // This functionality allows the app to respond to users joining and leaving the app in real-time.
@@ -331,7 +331,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // to the correct Realtime channel that the user is typing.
   const [isTyping, setIsTyping] = useState(false);
 
-  // [TODO]
+  // [TODO] madhura
   // Implement real-time updates for users typing in the channel.
   //
   // This functionality allows the app to respond to users typing in real-time. This functionality
@@ -368,7 +368,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     /* Your implementation here */
   }, []);
 
-  // [TODO]
+  // [TODO] madhura
   // Implement real-time updates for whenever a user joins / leaves a server or changes their display name /
   // profile picture.
   //

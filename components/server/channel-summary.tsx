@@ -26,7 +26,7 @@ export default function ChannelSummary({
 }: ChannelSummaryProps) {
   const [summaryText, setSummaryText] = useState("");
 
-  // [TODO]
+  // [TODO] parnika
   // Subscribe to the `summarizeChannel` API endpoint, supplying the channel ID
   // as input. Set the necessary handlers so that:
   // - On start, set the summary text to ""

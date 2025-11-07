@@ -94,7 +94,7 @@ const deleteChannel = protectedProcedure
     await db.delete(channelsTable).where(eq(channelsTable.id, channel.id));
   });
 
-// [TODO]
+// [TODO] madhura
 // Complete the `summarizeChannel` endpoint. This is a new type of endpoint called a
 // *subscription* endpoint. Along with queries and mutations, subscriptions are the
 // final type of tRPC endpoint. You can read more about them here:
@@ -150,7 +150,7 @@ const summarizeChannel = protectedProcedure
       orderBy: asc(messagesTable.createdAt),
     });
 
-    // [TODO]: Write a prompt to generate the output expected using the
+    // [TODO]: madhura -- Write a prompt to generate the output expected using the
     // provided data from above.
     const prompt = `
     Your prompt here...

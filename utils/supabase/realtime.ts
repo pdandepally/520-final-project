@@ -9,7 +9,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * [TODO]
+ * [TODO] parnika
  * This function sends a message to the `user-change` realtime channel to broadcast that
  * the current user's status has changed. This is used throughout the app to notify
  * other clients that the user joined / left a channel or changed their display name /
