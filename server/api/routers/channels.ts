@@ -153,8 +153,25 @@ const summarizeChannel = protectedProcedure
     // [TODO]: madhura -- Write a prompt to generate the output expected using the
     // provided data from above.
     const prompt = `
-    Your prompt here...
-    `;
+    Summarize discussions week by week for the past four weeks that contain messages from a channel. Include the author's first name, date, and discussion summary.
+    Only include weeks that have messages when you are considering what constitutes the past four weeks. List the weeks and their summaries in chronological order.
+    Use concise language in your discussion summary of the messages. Make the discussion summary 1-2 sentences.
+
+    Format your response in this way:
+    "Week <number> (<start date> - <end date>)
+    1-2 sentence summary of the disussion here"
+
+    Here is an example response for one week:
+    "Week 1 (Oct 27, 2025 - Nov 2, 2025)
+     John and Jane compared their favorite pizza slices in New York City."
+
+    Here are the messages:
+    ${messages
+      .map(
+        (m) =>
+          `${m.author?.displayName ?? "Unknown"} ${m.createdAt}: ${m.content}`,
+      )
+      .join("\n")}    `;
 
     // This code calls the Azure OpenAI endpoint and streams the result, token by token,
     // in realtime to the backend server.

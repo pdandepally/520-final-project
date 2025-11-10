@@ -514,7 +514,47 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // a necessity.
   useEffect(() => {
     /* Your implementation here */
-  }, []);
+const channel = supabase.channel(`channel-${channelId}`);
+    channel
+    .on("broadcast", 
+      {event: 'typingStart'},
+    (payload) => {
+      const typingUser = payload.payload.message;
+      setTypingUsers((prevArray) => {
+        if(prevArray.includes(typingUser)) return prevArray;
+        return [...prevArray, typingUser];
+      });
+      });
+
+    channel
+    .on("broadcast",
+      {event: 'typingEnd'},
+      (payload) => {
+        const typingUser = payload.payload.message;
+        setTypingUsers((prevArray) => prevArray.filter((userId) => userId !== typingUser));
+      }
+    );
+
+    channel.subscribe();
+
+    if(isTyping){
+      channel.send({
+        type: 'broadcast',
+        event: 'typingStart',
+        payload: {message: user.id},
+      });
+    } else{
+      channel.send({
+        type: 'broadcast',
+        event: 'typingEnd',
+        payload: {message: user.id},
+      });
+    }
+
+    return () => {
+      channel.unsubscribe();
+    }
+  }, [channelId, isTyping, supabase, user]);
 
   // [TODO] madhura
   // Implement real-time updates for whenever a user joins / leaves a server or changes their display name /
@@ -540,7 +580,22 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // a necessity.
   useEffect(() => {
     /* Your implementation here */
-  }, []);
+ const channel = supabase.channel('user-change');
+    channel
+    .on('broadcast',
+      {event: 'userStatusChange'},
+      () => {
+        //Learned about refetch through this documentation: https://tanstack.com/query/v5/docs/framework/react/reference/useQuery
+        apiUtils.servers.getServerMembers.refetch({serverId});
+      }
+    );
+
+    channel.subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    }
+  }, [apiUtils.servers.getServerMembers, serverId, supabase]);
 
   // Create states to handle the user's draft message text.
   const [draftMessageText, setDraftMessageText] = useState<string>("");
