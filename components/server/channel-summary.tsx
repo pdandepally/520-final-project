@@ -10,6 +10,8 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
 import { RotateCcw } from "lucide-react";
+import { api } from "@/utils/trpc/api";
+import { toast } from "sonner";
 
 type ChannelSummaryProps = {
   open: boolean;
@@ -35,6 +37,20 @@ export default function ChannelSummary({
   // The subscription should produce a `resetSummary` function, which can be
   // achieved using:
   // `const { reset: resetSummary } = /* your API call here */`
+  const { reset: resetSummary } = api.channels.summarizeChannel.useSubscription(
+    { channelId },
+    {
+      onStarted: () => {
+        setSummaryText("");
+      },
+      onData: (chunk) => {
+        setSummaryText((prev) => prev + chunk);
+      },
+      onError: (error) => {
+        toast.error(`Failed to generate summary: ${error.message}`);
+      },
+    }
+  );
 
   const resetButtonPressed = () => {
     setSummaryText("");

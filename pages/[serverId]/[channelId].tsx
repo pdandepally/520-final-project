@@ -25,7 +25,6 @@ import { createSupabaseServerClient } from "@/utils/supabase/clients/server-prop
 import {
   DraftMessage,
   MessageReaction,
-  Reaction,
 } from "@/server/models/responses";
 import { User } from "@supabase/supabase-js";
 import { ImageIcon, SmilePlus, Upload, X } from "lucide-react";
@@ -243,22 +242,120 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
   // a necessity.
   useEffect(() => {
-    /* Your implementation here */
-  }, []);
+    if (!channelId) return;
+
+    const messageChannel = supabase
+      .channel('message-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'message',
+          filter: `channel_id=eq.${channelId}`
+        },
+        (payload) => {
+          const newMessage = payload.new;
+          if (newMessage.author_id !== user.id) {
+            addMessageToCache({
+              id: newMessage.id,
+              content: newMessage.content,
+              authorId: newMessage.author_id,
+              channelId: newMessage.channel_id,
+              attachmentUrl: newMessage.attachment_url,
+              createdAt: new Date(newMessage.created_at)
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'message',
+          filter: `channel_id=eq.${channelId}`
+        },
+        (payload) => {
+          const updatedMessage = payload.new;
+          updateMessageInCache({
+            id: updatedMessage.id,
+            content: updatedMessage.content,
+            authorId: updatedMessage.author_id,
+            channelId: updatedMessage.channel_id,
+            attachmentUrl: updatedMessage.attachment_url,
+            createdAt: new Date(updatedMessage.created_at)
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'message',
+          filter: `channel_id=eq.${channelId}`
+        },
+        (payload) => {
+          const deletedMessage = payload.old;
+          deleteMessageFromCache(deletedMessage.id);
+        }
+      )
+      .subscribe();
+
+    const reactionChannel = supabase
+      .channel('reaction-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'reaction'
+        },
+        (payload) => {
+          const newReaction = payload.new;
+          if (newReaction.profile_id !== user.id) {
+            addReactionToCache(newReaction.message_id, {
+              id: newReaction.id,
+              reaction: newReaction.reaction,
+              profileId: newReaction.profile_id
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'reaction'
+        },
+        (payload) => {
+          const deletedReaction = payload.old;
+          removeReactionFromCache(deletedReaction.id);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      messageChannel.unsubscribe();
+      reactionChannel.unsubscribe();
+    };
+  }, [channelId, user.id, supabase, addMessageToCache, updateMessageInCache, deleteMessageFromCache, addReactionToCache, removeReactionFromCache]);
 
   // Store all of the users who are currently "online" (using the app). Here, we just
   // store user IDs.
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   // Define functions to handle how the online users state is muated when users join
   // and leave the app.
-  const onUserJoin = (joiningUserIds: string[]) => {
+  const onUserJoin = useCallback((joiningUserIds: string[]) => {
     setOnlineUsers((prevUsers) => [...prevUsers, ...joiningUserIds]);
-  };
-  const onUserLeave = (leavingUserIds: string[]) => {
+  }, []);
+  const onUserLeave = useCallback((leavingUserIds: string[]) => {
     setOnlineUsers((prevUsers) =>
       prevUsers.filter((user) => !leavingUserIds.includes(user)),
     );
-  };
+  }, []);
 
   // [TODO] parnika
   // Implement real-time updates for user's online status as they join and leave the app.
@@ -293,8 +390,59 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
   // a necessity.
   useEffect(() => {
-    /* Your implementation here */
-  }, []);
+    const presenceChannel = supabase
+      .channel('presence')
+      .on('presence', { event: 'join' }, (payload) => {
+        const joiningUserIds: string[] = [];
+        Object.keys(payload.newPresences).forEach(key => {
+          try {
+            const presenceArray = (payload.newPresences as unknown as Record<string, unknown>)[key];
+            if (Array.isArray(presenceArray) && presenceArray.length > 0) {
+              const userId = presenceArray[0]?.user_id;
+              if (userId && typeof userId === 'string') {
+                joiningUserIds.push(userId);
+              }
+            }
+          } catch {
+          }
+        });
+        
+        if (joiningUserIds.length > 0) {
+          onUserJoin(joiningUserIds);
+        }
+      })
+      .on('presence', { event: 'leave' }, (payload) => {
+        const leavingUserIds: string[] = [];
+        Object.keys(payload.leftPresences).forEach(key => {
+          try {
+            const presenceArray = (payload.leftPresences as unknown as Record<string, unknown>)[key];
+            if (Array.isArray(presenceArray) && presenceArray.length > 0) {
+              const userId = presenceArray[0]?.user_id;
+              if (userId && typeof userId === 'string') {
+                leavingUserIds.push(userId);
+              }
+            }
+          } catch {
+          }
+        });
+        
+        if (leavingUserIds.length > 0) {
+          onUserLeave(leavingUserIds);
+        }
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            user_id: user.id,
+            online_at: new Date().toISOString()
+          });
+        }
+      });
+
+    return () => {
+      presenceChannel.unsubscribe();
+    };
+  }, [user.id, supabase, onUserJoin, onUserLeave]);
 
   // Store all of the users who are currently "typing" in the channel. Here, we just
   // store user IDs. This is used to display a message to the user that someone is typing.
