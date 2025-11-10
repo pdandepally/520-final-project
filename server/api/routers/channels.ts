@@ -171,7 +171,8 @@ const summarizeChannel = protectedProcedure
         (m) =>
           `${m.author?.displayName ?? "Unknown"} ${m.createdAt}: ${m.content}`,
       )
-      .join("\n")}    `;
+      .join("\n")}
+    `;
 
     // This code calls the Azure OpenAI endpoint and streams the result, token by token,
     // in realtime to the backend server.

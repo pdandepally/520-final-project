@@ -57,6 +57,7 @@ import {
 } from "@/utils/supabase/cache/reaction-cache";
 import { api } from "@/utils/trpc/api";
 import { uploadAttachmentToSupabase } from "@/utils/supabase/storage";
+import { channel } from "diagnostics_channel";
 
 export type ChannelPageProps = { user: User };
 export default function ChannelPage({ user }: ChannelPageProps) {
@@ -578,6 +579,7 @@ const channel = supabase.channel(`channel-${channelId}`);
   //
   // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
   // a necessity.
+
   useEffect(() => {
     /* Your implementation here */
  const channel = supabase.channel('user-change');
