@@ -322,6 +322,8 @@ export default function ChannelPage({ user }: ChannelPageProps) {
               reaction: newReaction.reaction,
               profileId: newReaction.profile_id
             });
+            // Force a refetch to ensure UI updates
+            apiUtils.messages.getPaginatedMessages.refetch({ channelId });
           } else {
           }
         }
@@ -335,16 +337,10 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
-          console.log('🔥 DELETE event:', payload);
           const deletedReaction = payload.old;
-          console.log('🔥 Deleted by:', deletedReaction.profile_id, 'Current user:', user.id);
-          console.log('🔥 Should process?', deletedReaction.profile_id !== user.id);
-          if (deletedReaction.profile_id !== user.id) {
-            console.log('🔥 Removing reaction:', deletedReaction.id);
-            removeReactionFromCache(deletedReaction.id);
-          } else {
-            console.log('🔥 Skipping own deletion (handled optimistically)');
-          }
+          removeReactionFromCache(deletedReaction.id);
+          // Force a refetch to ensure UI updates
+          apiUtils.messages.getPaginatedMessages.refetch({ channelId });
         }
       );
 
@@ -355,7 +351,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
       messageChannel.unsubscribe();
       reactionChannel.unsubscribe();
     };
-  }, [channelId, user.id, supabase, addMessageToCache, updateMessageInCache, deleteMessageFromCache, addReactionToCache, removeReactionFromCache]);
+  }, [channelId, user.id, supabase, addMessageToCache, updateMessageInCache, deleteMessageFromCache, addReactionToCache, removeReactionFromCache, apiUtils]);
 
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const onUserJoin = useCallback((joiningUserIds: string[]) => {

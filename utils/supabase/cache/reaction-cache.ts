@@ -19,24 +19,23 @@ export const addReactionToCacheFn =
     apiUtils.messages.getPaginatedMessages.setInfiniteData(
       { channelId },
       (oldData) => {
+        if (!oldData) return oldData;
+
         return {
-          pageParams: oldData?.pageParams ?? [],
-          pages:
-            oldData?.pages.map((page) =>
-              page.map((message) =>
-                message.id === messageId
-                  ? {
-                      ...message,
-                      reactions: [...message.reactions, reaction],
-                    }
-                  : message,
-              ),
-            ) ?? [],
+          pageParams: [...(oldData.pageParams ?? [])],
+          pages: oldData.pages.map((page) =>
+            page.map((message) =>
+              message.id === messageId
+                ? {
+                    ...message,
+                    reactions: [...message.reactions, reaction],
+                  }
+                : message,
+            ),
+          ),
         };
       },
     );
-    // Invalidate to force an immediate re-render
-    apiUtils.messages.getPaginatedMessages.invalidate({ channelId });
   };
 
 /** Generates a function that removes a reaction from the cache. */
@@ -45,20 +44,19 @@ export const removeReactionFromCacheFn =
     apiUtils.messages.getPaginatedMessages.setInfiniteData(
       { channelId },
       (oldData) => {
+        if (!oldData) return oldData;
+
         return {
-          pageParams: oldData?.pageParams ?? [],
-          pages:
-            oldData?.pages.map((page) =>
-              page.map((message) => ({
-                ...message,
-                reactions: message.reactions.filter(
-                  (reaction) => reaction.id !== reactionId,
-                ),
-              })),
-            ) ?? [],
+          pageParams: [...(oldData.pageParams ?? [])],
+          pages: oldData.pages.map((page) =>
+            page.map((message) => ({
+              ...message,
+              reactions: message.reactions.filter(
+                (reaction) => reaction.id !== reactionId,
+              ),
+            })),
+          ),
         };
       },
     );
-    // Invalidate to force an immediate re-render
-    apiUtils.messages.getPaginatedMessages.invalidate({ channelId });
   };
