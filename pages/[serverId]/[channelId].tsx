@@ -394,60 +394,77 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     console.log('Setting up presence tracking for user:', user.id);
     
     const presenceChannel = supabase
-      .channel('presence')
+      .channel('global-presence')
       .on('presence', { event: 'sync' }, () => {
         console.log('Presence sync event received');
         const currentPresences = presenceChannel.presenceState();
-        console.log('Current presences:', currentPresences);
+        console.log('Raw presence state:', currentPresences);
         
         const allOnlineUsers: string[] = [];
-        Object.values(currentPresences).forEach((presences: any) => {
-          if (Array.isArray(presences)) {
-            presences.forEach((presence: any) => {
-              if (presence.user_id && presence.user_id !== user.id) {
-                allOnlineUsers.push(presence.user_id);
+        for (const [key, presenceArray] of Object.entries(currentPresences)) {
+          console.log(`Processing presence key ${key}:`, presenceArray);
+          if (Array.isArray(presenceArray)) {
+            presenceArray.forEach((presence) => {
+              console.log('Individual presence:', presence);
+              if (presence && typeof presence === 'object' && 'user_id' in presence) {
+                const userId = (presence as { user_id: string }).user_id;
+                if (userId && userId !== user.id && !allOnlineUsers.includes(userId)) {
+                  allOnlineUsers.push(userId);
+                }
               }
             });
           }
-        });
+        }
         
-        console.log('Setting online users to:', allOnlineUsers);
+        console.log('Final online users list:', allOnlineUsers);
         setOnlineUsers(allOnlineUsers);
       })
       .on('presence', { event: 'join' }, (payload) => {
-        console.log('User joined presence:', payload);
+        console.log('User joined presence - full payload:', payload);
+        
         const joiningUserIds: string[] = [];
-        
-        Object.values(payload.newPresences).forEach((presences: any) => {
-          if (Array.isArray(presences)) {
-            presences.forEach((presence: any) => {
-              if (presence.user_id && presence.user_id !== user.id) {
-                joiningUserIds.push(presence.user_id);
-              }
-            });
+        if (payload.newPresences) {
+          for (const [key, presenceArray] of Object.entries(payload.newPresences)) {
+            console.log(`New presence key ${key}:`, presenceArray);
+            if (Array.isArray(presenceArray)) {
+              presenceArray.forEach((presence) => {
+                if (presence && typeof presence === 'object' && 'user_id' in presence) {
+                  const userId = (presence as { user_id: string }).user_id;
+                  if (userId && userId !== user.id && !joiningUserIds.includes(userId)) {
+                    joiningUserIds.push(userId);
+                  }
+                }
+              });
+            }
           }
-        });
+        }
         
-        console.log('Adding joining users:', joiningUserIds);
+        console.log('Users joining:', joiningUserIds);
         if (joiningUserIds.length > 0) {
           onUserJoin(joiningUserIds);
         }
       })
       .on('presence', { event: 'leave' }, (payload) => {
-        console.log('User left presence:', payload);
+        console.log('User left presence - full payload:', payload);
+        
         const leavingUserIds: string[] = [];
-        
-        Object.values(payload.leftPresences).forEach((presences: any) => {
-          if (Array.isArray(presences)) {
-            presences.forEach((presence: any) => {
-              if (presence.user_id) {
-                leavingUserIds.push(presence.user_id);
-              }
-            });
+        if (payload.leftPresences) {
+          for (const [key, presenceArray] of Object.entries(payload.leftPresences)) {
+            console.log(`Left presence key ${key}:`, presenceArray);
+            if (Array.isArray(presenceArray)) {
+              presenceArray.forEach((presence) => {
+                if (presence && typeof presence === 'object' && 'user_id' in presence) {
+                  const userId = (presence as { user_id: string }).user_id;
+                  if (userId && !leavingUserIds.includes(userId)) {
+                    leavingUserIds.push(userId);
+                  }
+                }
+              });
+            }
           }
-        });
+        }
         
-        console.log('Removing leaving users:', leavingUserIds);
+        console.log('Users leaving:', leavingUserIds);
         if (leavingUserIds.length > 0) {
           onUserLeave(leavingUserIds);
         }
@@ -456,15 +473,17 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         console.log('Presence subscription status:', status);
         if (status === 'SUBSCRIBED') {
           console.log('Tracking presence for user:', user.id);
-          await presenceChannel.track({
+          const trackResult = await presenceChannel.track({
             user_id: user.id,
             online_at: new Date().toISOString()
           });
+          console.log('Track result:', trackResult);
         }
       });
 
     return () => {
-      console.log('Unsubscribing from presence channel');
+      console.log('Unsubscribing from presence channel for user:', user.id);
+      presenceChannel.untrack();
       presenceChannel.unsubscribe();
     };
   }, [user.id, supabase, onUserJoin, onUserLeave]);
@@ -974,8 +993,27 @@ const channel = supabase.channel(`channel-${channelId}`);
           </div>
         </div>
         {/* Debug: Show online users */}
-        <div className="text-xs text-gray-500 p-2 bg-gray-100">
-          Debug - Online Users ({onlineUsers.length}): {JSON.stringify(onlineUsers)}
+        <div className="text-xs text-gray-500 p-2 bg-gray-100 border">
+          <div>Debug - Online Users ({onlineUsers.length}): {JSON.stringify(onlineUsers)}</div>
+          <div>Current User ID: {user.id}</div>
+          <button 
+            className="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded"
+            onClick={() => {
+              console.log('Manual test: adding fake user to online list');
+              setOnlineUsers(prev => [...prev, 'test-user-123']);
+            }}
+          >
+            Test: Add Fake User
+          </button>
+          <button 
+            className="mt-2 ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded"
+            onClick={() => {
+              console.log('Manual test: clearing online users');
+              setOnlineUsers([]);
+            }}
+          >
+            Clear All
+          </button>
         </div>
         {/* User sidebar */}
         <ServerUserSidebar
