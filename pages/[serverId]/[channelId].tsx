@@ -391,48 +391,71 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
   // a necessity.
   useEffect(() => {
+    console.log('Setting up presence tracking for user:', user.id);
+    
     const presenceChannel = supabase
       .channel('presence')
-      .on('presence', { event: 'join' }, (payload) => {
-        const joiningUserIds: string[] = [];
-        Object.keys(payload.newPresences).forEach(key => {
-          try {
-            const presenceArray = (payload.newPresences as unknown as Record<string, unknown>)[key];
-            if (Array.isArray(presenceArray) && presenceArray.length > 0) {
-              const userId = presenceArray[0]?.user_id;
-              if (userId && typeof userId === 'string') {
-                joiningUserIds.push(userId);
+      .on('presence', { event: 'sync' }, () => {
+        console.log('Presence sync event received');
+        const currentPresences = presenceChannel.presenceState();
+        console.log('Current presences:', currentPresences);
+        
+        const allOnlineUsers: string[] = [];
+        Object.values(currentPresences).forEach((presences: any) => {
+          if (Array.isArray(presences)) {
+            presences.forEach((presence: any) => {
+              if (presence.user_id && presence.user_id !== user.id) {
+                allOnlineUsers.push(presence.user_id);
               }
-            }
-          } catch {
+            });
           }
         });
         
+        console.log('Setting online users to:', allOnlineUsers);
+        setOnlineUsers(allOnlineUsers);
+      })
+      .on('presence', { event: 'join' }, (payload) => {
+        console.log('User joined presence:', payload);
+        const joiningUserIds: string[] = [];
+        
+        Object.values(payload.newPresences).forEach((presences: any) => {
+          if (Array.isArray(presences)) {
+            presences.forEach((presence: any) => {
+              if (presence.user_id && presence.user_id !== user.id) {
+                joiningUserIds.push(presence.user_id);
+              }
+            });
+          }
+        });
+        
+        console.log('Adding joining users:', joiningUserIds);
         if (joiningUserIds.length > 0) {
           onUserJoin(joiningUserIds);
         }
       })
       .on('presence', { event: 'leave' }, (payload) => {
+        console.log('User left presence:', payload);
         const leavingUserIds: string[] = [];
-        Object.keys(payload.leftPresences).forEach(key => {
-          try {
-            const presenceArray = (payload.leftPresences as unknown as Record<string, unknown>)[key];
-            if (Array.isArray(presenceArray) && presenceArray.length > 0) {
-              const userId = presenceArray[0]?.user_id;
-              if (userId && typeof userId === 'string') {
-                leavingUserIds.push(userId);
+        
+        Object.values(payload.leftPresences).forEach((presences: any) => {
+          if (Array.isArray(presences)) {
+            presences.forEach((presence: any) => {
+              if (presence.user_id) {
+                leavingUserIds.push(presence.user_id);
               }
-            }
-          } catch {
+            });
           }
         });
         
+        console.log('Removing leaving users:', leavingUserIds);
         if (leavingUserIds.length > 0) {
           onUserLeave(leavingUserIds);
         }
       })
       .subscribe(async (status) => {
+        console.log('Presence subscription status:', status);
         if (status === 'SUBSCRIBED') {
+          console.log('Tracking presence for user:', user.id);
           await presenceChannel.track({
             user_id: user.id,
             online_at: new Date().toISOString()
@@ -441,6 +464,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
       });
 
     return () => {
+      console.log('Unsubscribing from presence channel');
       presenceChannel.unsubscribe();
     };
   }, [user.id, supabase, onUserJoin, onUserLeave]);
@@ -948,6 +972,10 @@ const channel = supabase.channel(`channel-${channelId}`);
             </div>
             <p className="h-3 py-2 text-sm italic">{typingText}</p>
           </div>
+        </div>
+        {/* Debug: Show online users */}
+        <div className="text-xs text-gray-500 p-2 bg-gray-100">
+          Debug - Online Users ({onlineUsers.length}): {JSON.stringify(onlineUsers)}
         </div>
         {/* User sidebar */}
         <ServerUserSidebar
