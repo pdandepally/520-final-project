@@ -334,7 +334,6 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           event: 'DELETE',
           schema: 'public',
           table: 'reactions',
-          filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
           const deletedReaction = payload.old;
