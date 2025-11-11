@@ -245,8 +245,11 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   useEffect(() => {
     if (!channelId) return;
 
+    console.log('🔥 Setting up message/reaction real-time for channel:', channelId);
+    console.log('🔥 Current user ID:', user.id);
+
     const messageChannel = supabase
-      .channel('message-changes')
+      .channel(`messages-${channelId}-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -256,8 +259,10 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
+          console.log('🔥 NEW MESSAGE received:', payload.new);
           const newMessage = payload.new;
           if (newMessage.author_id !== user.id) {
+            console.log('🔥 Adding message to cache (not from current user)');
             addMessageToCache({
               id: newMessage.id,
               content: newMessage.content,
@@ -266,6 +271,8 @@ export default function ChannelPage({ user }: ChannelPageProps) {
               attachmentUrl: newMessage.attachment_url,
               createdAt: new Date(newMessage.created_at)
             });
+          } else {
+            console.log('🔥 Ignoring message from current user');
           }
         }
       )
@@ -278,6 +285,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
+          console.log('🔥 MESSAGE UPDATED:', payload.new);
           const updatedMessage = payload.new;
           updateMessageInCache({
             id: updatedMessage.id,
@@ -298,29 +306,37 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
+          console.log('🔥 MESSAGE DELETED:', payload.old);
           const deletedMessage = payload.old;
           deleteMessageFromCache(deletedMessage.id);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('🔥 Message channel subscription status:', status);
+      });
 
     const reactionChannel = supabase
-      .channel('reaction-changes')
+      .channel(`reactions-${channelId}-${user.id}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'reaction'
+          table: 'reaction',
+          filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
+          console.log('🔥 NEW REACTION received:', payload.new);
           const newReaction = payload.new;
           if (newReaction.profile_id !== user.id) {
+            console.log('🔥 Adding reaction to cache (not from current user)');
             addReactionToCache(newReaction.message_id, {
               id: newReaction.id,
               reaction: newReaction.reaction,
               profileId: newReaction.profile_id
             });
+          } else {
+            console.log('🔥 Ignoring reaction from current user');
           }
         }
       )
@@ -329,16 +345,21 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         {
           event: 'DELETE',
           schema: 'public',
-          table: 'reaction'
+          table: 'reaction',
+          filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
+          console.log('🔥 REACTION DELETED:', payload.old);
           const deletedReaction = payload.old;
           removeReactionFromCache(deletedReaction.id);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('🔥 Reaction channel subscription status:', status);
+      });
 
     return () => {
+      console.log('🔥 Unsubscribing from message/reaction channels');
       messageChannel.unsubscribe();
       reactionChannel.unsubscribe();
     };
@@ -391,41 +412,48 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
   // a necessity.
   useEffect(() => {
-    console.log('Setting up presence tracking for user:', user.id);
+    console.log('👥 Setting up presence tracking for user:', user.id);
     
     const presenceChannel = supabase
-      .channel('global-presence')
+      .channel('global-presence', {
+        config: {
+          presence: {
+            key: user.id,
+          },
+        },
+      })
       .on('presence', { event: 'sync' }, () => {
-        console.log('Presence sync event received');
+        console.log('👥 Presence SYNC event received');
         const currentPresences = presenceChannel.presenceState();
-        console.log('Raw presence state:', currentPresences);
+        console.log('👥 Raw presence state:', currentPresences);
         
         const allOnlineUsers: string[] = [];
         for (const [key, presenceArray] of Object.entries(currentPresences)) {
-          console.log(`Processing presence key ${key}:`, presenceArray);
+          console.log(`👥 Processing presence key ${key}:`, presenceArray);
           if (Array.isArray(presenceArray)) {
             presenceArray.forEach((presence) => {
-              console.log('Individual presence:', presence);
+              console.log('👥 Individual presence:', presence);
               if (presence && typeof presence === 'object' && 'user_id' in presence) {
                 const userId = (presence as { user_id: string }).user_id;
                 if (userId && userId !== user.id && !allOnlineUsers.includes(userId)) {
                   allOnlineUsers.push(userId);
+                  console.log(`👥 Added user ${userId} to online list`);
                 }
               }
             });
           }
         }
         
-        console.log('Final online users list:', allOnlineUsers);
+        console.log('👥 FINAL online users list:', allOnlineUsers);
         setOnlineUsers(allOnlineUsers);
       })
       .on('presence', { event: 'join' }, (payload) => {
-        console.log('User joined presence - full payload:', payload);
+        console.log('👥 User JOINED presence - full payload:', payload);
         
         const joiningUserIds: string[] = [];
         if (payload.newPresences) {
           for (const [key, presenceArray] of Object.entries(payload.newPresences)) {
-            console.log(`New presence key ${key}:`, presenceArray);
+            console.log(`👥 New presence key ${key}:`, presenceArray);
             if (Array.isArray(presenceArray)) {
               presenceArray.forEach((presence) => {
                 if (presence && typeof presence === 'object' && 'user_id' in presence) {
@@ -439,18 +467,18 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           }
         }
         
-        console.log('Users joining:', joiningUserIds);
+        console.log('👥 Users joining:', joiningUserIds);
         if (joiningUserIds.length > 0) {
           onUserJoin(joiningUserIds);
         }
       })
       .on('presence', { event: 'leave' }, (payload) => {
-        console.log('User left presence - full payload:', payload);
+        console.log('👥 User LEFT presence - full payload:', payload);
         
         const leavingUserIds: string[] = [];
         if (payload.leftPresences) {
           for (const [key, presenceArray] of Object.entries(payload.leftPresences)) {
-            console.log(`Left presence key ${key}:`, presenceArray);
+            console.log(`👥 Left presence key ${key}:`, presenceArray);
             if (Array.isArray(presenceArray)) {
               presenceArray.forEach((presence) => {
                 if (presence && typeof presence === 'object' && 'user_id' in presence) {
@@ -464,29 +492,40 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           }
         }
         
-        console.log('Users leaving:', leavingUserIds);
+        console.log('👥 Users leaving:', leavingUserIds);
         if (leavingUserIds.length > 0) {
           onUserLeave(leavingUserIds);
         }
       })
       .subscribe(async (status) => {
-        console.log('Presence subscription status:', status);
+        console.log('👥 Presence subscription status:', status);
         if (status === 'SUBSCRIBED') {
-          console.log('Tracking presence for user:', user.id);
+          console.log('👥 Tracking presence for user:', user.id);
           const trackResult = await presenceChannel.track({
             user_id: user.id,
-            online_at: new Date().toISOString()
+            online_at: new Date().toISOString(),
+            user_info: {
+              id: user.id,
+              email: user.email
+            }
           });
-          console.log('Track result:', trackResult);
+          console.log('👥 Track result:', trackResult);
+          
+          // Force a sync after tracking
+          setTimeout(() => {
+            console.log('👥 Forcing presence sync...');
+            const currentState = presenceChannel.presenceState();
+            console.log('👥 Current state after track:', currentState);
+          }, 1000);
         }
       });
 
     return () => {
-      console.log('Unsubscribing from presence channel for user:', user.id);
+      console.log('👥 Unsubscribing from presence channel for user:', user.id);
       presenceChannel.untrack();
       presenceChannel.unsubscribe();
     };
-  }, [user.id, supabase, onUserJoin, onUserLeave]);
+  }, [user.id, user.email, supabase, onUserJoin, onUserLeave]);
 
   // Store all of the users who are currently "typing" in the channel. Here, we just
   // store user IDs. This is used to display a message to the user that someone is typing.
@@ -992,28 +1031,45 @@ const channel = supabase.channel(`channel-${channelId}`);
             <p className="h-3 py-2 text-sm italic">{typingText}</p>
           </div>
         </div>
-        {/* Debug: Show online users */}
-        <div className="text-xs text-gray-500 p-2 bg-gray-100 border">
-          <div>Debug - Online Users ({onlineUsers.length}): {JSON.stringify(onlineUsers)}</div>
-          <div>Current User ID: {user.id}</div>
-          <button 
-            className="mt-2 px-2 py-1 bg-blue-500 text-white text-xs rounded"
-            onClick={() => {
-              console.log('Manual test: adding fake user to online list');
-              setOnlineUsers(prev => [...prev, 'test-user-123']);
-            }}
-          >
-            Test: Add Fake User
-          </button>
-          <button 
-            className="mt-2 ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded"
-            onClick={() => {
-              console.log('Manual test: clearing online users');
-              setOnlineUsers([]);
-            }}
-          >
-            Clear All
-          </button>
+        {/* Debug: Show online users and real-time status */}
+        <div className="text-xs text-gray-500 p-2 bg-yellow-50 border-2 border-yellow-300">
+          <div className="font-bold text-yellow-800">🔧 REAL-TIME DEBUG PANEL</div>
+          <div className="mt-1">
+            <div>👥 Online Users ({onlineUsers.length}): {JSON.stringify(onlineUsers)}</div>
+            <div>🆔 Current User: {user.id}</div>
+            <div>📺 Channel: {channelId}</div>
+          </div>
+          <div className="mt-2 space-x-2">
+            <button 
+              className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
+              onClick={() => {
+                console.log('🧪 Manual test: adding fake user to online list');
+                setOnlineUsers(prev => [...prev, 'fake-user-' + Date.now()]);
+              }}
+            >
+              Test: Add Fake User
+            </button>
+            <button 
+              className="px-2 py-1 bg-red-500 text-white text-xs rounded"
+              onClick={() => {
+                console.log('🧪 Manual test: clearing online users');
+                setOnlineUsers([]);
+              }}
+            >
+              Clear All
+            </button>
+            <button 
+              className="px-2 py-1 bg-green-500 text-white text-xs rounded"
+              onClick={() => {
+                console.log('🔍 Current presence state:', supabase.channel('global-presence').presenceState());
+              }}
+            >
+              Log Presence State
+            </button>
+          </div>
+          <div className="mt-2 text-xs text-yellow-700">
+            📝 Check browser console for real-time logs (🔥 = messages, 👥 = presence)
+          </div>
         </div>
         {/* User sidebar */}
         <ServerUserSidebar
