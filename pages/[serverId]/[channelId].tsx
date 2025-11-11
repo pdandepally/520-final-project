@@ -245,9 +245,6 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   useEffect(() => {
     if (!channelId) return;
 
-    console.log('🔥 Setting up message/reaction real-time for channel:', channelId);
-    console.log('🔥 Current user ID:', user.id);
-
     const messageChannel = supabase
       .channel(`messages-${channelId}-${user.id}`)
       .on(
@@ -259,10 +256,8 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
-          console.log('🔥 NEW MESSAGE received:', payload.new);
           const newMessage = payload.new;
           if (newMessage.author_id !== user.id) {
-            console.log('🔥 Adding message to cache (not from current user)');
             addMessageToCache({
               id: newMessage.id,
               content: newMessage.content,
@@ -272,7 +267,6 @@ export default function ChannelPage({ user }: ChannelPageProps) {
               createdAt: new Date(newMessage.created_at)
             });
           } else {
-            console.log('🔥 Ignoring message from current user');
           }
         }
       )
@@ -285,7 +279,6 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
-          console.log('🔥 MESSAGE UPDATED:', payload.new);
           const updatedMessage = payload.new;
           updateMessageInCache({
             id: updatedMessage.id,
@@ -306,14 +299,10 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
-          console.log('🔥 MESSAGE DELETED:', payload.old);
           const deletedMessage = payload.old;
           deleteMessageFromCache(deletedMessage.id);
         }
-      )
-      .subscribe((status) => {
-        console.log('🔥 Message channel subscription status:', status);
-      });
+      );
 
     const reactionChannel = supabase
       .channel(`reactions-${channelId}-${user.id}`)
@@ -326,17 +315,14 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
-          console.log('🔥 NEW REACTION received:', payload.new);
           const newReaction = payload.new;
           if (newReaction.profile_id !== user.id) {
-            console.log('🔥 Adding reaction to cache (not from current user)');
             addReactionToCache(newReaction.message_id, {
               id: newReaction.id,
               reaction: newReaction.reaction,
               profileId: newReaction.profile_id
             });
           } else {
-            console.log('🔥 Ignoring reaction from current user');
           }
         }
       )
@@ -349,27 +335,18 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
-          console.log('🔥 REACTION DELETED:', payload.old);
           const deletedReaction = payload.old;
           removeReactionFromCache(deletedReaction.id);
         }
-      )
-      .subscribe((status) => {
-        console.log('🔥 Reaction channel subscription status:', status);
-      });
+      );
 
     return () => {
-      console.log('🔥 Unsubscribing from message/reaction channels');
       messageChannel.unsubscribe();
       reactionChannel.unsubscribe();
     };
   }, [channelId, user.id, supabase, addMessageToCache, updateMessageInCache, deleteMessageFromCache, addReactionToCache, removeReactionFromCache]);
 
-  // Store all of the users who are currently "online" (using the app). Here, we just
-  // store user IDs.
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  // Define functions to handle how the online users state is muated when users join
-  // and leave the app.
   const onUserJoin = useCallback((joiningUserIds: string[]) => {
     setOnlineUsers((prevUsers) => [...prevUsers, ...joiningUserIds]);
   }, []);
@@ -511,7 +488,6 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           });
           console.log('👥 Track result:', trackResult);
           
-          // Force a sync after tracking
           setTimeout(() => {
             console.log('👥 Forcing presence sync...');
             const currentState = presenceChannel.presenceState();
@@ -527,9 +503,11 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     };
   }, [user.id, user.email, supabase, onUserJoin, onUserLeave]);
 
-  // Store all of the users who are currently "typing" in the channel. Here, we just
-  // store user IDs. This is used to display a message to the user that someone is typing.
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+
+  useEffect(() => {
+    setTypingUsers(prev => prev.filter(userId => onlineUsers.includes(userId)));
+  }, [onlineUsers]);
 
   // Memoizing bc this might be computationally expensive over rerenders
   // Stores the text that should show up for the user when someone is typing based on the
