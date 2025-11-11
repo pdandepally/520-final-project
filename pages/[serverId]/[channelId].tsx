@@ -336,7 +336,9 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         },
         (payload) => {
           const deletedReaction = payload.old;
-          removeReactionFromCache(deletedReaction.id);
+          if (deletedReaction.profile_id !== user.id) {
+            removeReactionFromCache(deletedReaction.id);
+          }
         }
       );
 
