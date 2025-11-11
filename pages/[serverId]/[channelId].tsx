@@ -787,11 +787,24 @@ const channel = supabase.channel(`channel-${channelId}`);
     };
   }, [handleKeyDown]);
 
-  // This function handles what should happen whenever the user adds a reaction to a message.
   const onReactionAddForMessage = (messageId: string) => (emoji: string) => {
+    const existingReaction = messages?.pages.flatMap((page) =>
+      page.flatMap((message) =>
+        message.id === messageId
+          ? message.reactions.filter(
+              (reaction) =>
+                reaction.reaction === emoji && reaction.profileId === user.id,
+            )
+          : [],
+      ),
+    );
+
+    if (existingReaction && existingReaction.length > 0) {
+      onReactionRemoveForMessage(messageId)(emoji);
+      return;
+    }
+
     const id = uuidv4();
-    // Add the reaction to the cache optimistically so that the user can see the reaction immediately.
-    // If the reaction fails to send, this will be reverted.
     addReactionToCache(messageId, {
       id: id,
       reaction: emoji,
