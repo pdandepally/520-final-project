@@ -340,6 +340,9 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         }
       );
 
+    messageChannel.subscribe();
+    reactionChannel.subscribe();
+
     return () => {
       messageChannel.unsubscribe();
       reactionChannel.unsubscribe();
