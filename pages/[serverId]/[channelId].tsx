@@ -255,7 +255,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'message',
+          table: 'messages',
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
@@ -281,7 +281,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         {
           event: 'UPDATE',
           schema: 'public',
-          table: 'message',
+          table: 'messages',
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
@@ -302,7 +302,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         {
           event: 'DELETE',
           schema: 'public',
-          table: 'message',
+          table: 'messages',
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
@@ -322,7 +322,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'reaction',
+          table: 'reactions',
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
@@ -345,7 +345,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
         {
           event: 'DELETE',
           schema: 'public',
-          table: 'reaction',
+          table: 'reactions',
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
@@ -1031,46 +1031,7 @@ const channel = supabase.channel(`channel-${channelId}`);
             <p className="h-3 py-2 text-sm italic">{typingText}</p>
           </div>
         </div>
-        {/* Debug: Show online users and real-time status */}
-        <div className="text-xs text-gray-500 p-2 bg-yellow-50 border-2 border-yellow-300">
-          <div className="font-bold text-yellow-800">🔧 REAL-TIME DEBUG PANEL</div>
-          <div className="mt-1">
-            <div>👥 Online Users ({onlineUsers.length}): {JSON.stringify(onlineUsers)}</div>
-            <div>🆔 Current User: {user.id}</div>
-            <div>📺 Channel: {channelId}</div>
-          </div>
-          <div className="mt-2 space-x-2">
-            <button 
-              className="px-2 py-1 bg-blue-500 text-white text-xs rounded"
-              onClick={() => {
-                console.log('🧪 Manual test: adding fake user to online list');
-                setOnlineUsers(prev => [...prev, 'fake-user-' + Date.now()]);
-              }}
-            >
-              Test: Add Fake User
-            </button>
-            <button 
-              className="px-2 py-1 bg-red-500 text-white text-xs rounded"
-              onClick={() => {
-                console.log('🧪 Manual test: clearing online users');
-                setOnlineUsers([]);
-              }}
-            >
-              Clear All
-            </button>
-            <button 
-              className="px-2 py-1 bg-green-500 text-white text-xs rounded"
-              onClick={() => {
-                console.log('🔍 Current presence state:', supabase.channel('global-presence').presenceState());
-              }}
-            >
-              Log Presence State
-            </button>
-          </div>
-          <div className="mt-2 text-xs text-yellow-700">
-            📝 Check browser console for real-time logs (🔥 = messages, 👥 = presence)
-          </div>
-        </div>
+
         {/* User sidebar */}
         <ServerUserSidebar
           server={server ?? undefined}
