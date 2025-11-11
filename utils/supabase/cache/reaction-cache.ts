@@ -29,12 +29,14 @@ export const addReactionToCacheFn =
                       ...message,
                       reactions: [...message.reactions, reaction],
                     }
-                  : message
-              )
+                  : message,
+              ),
             ) ?? [],
         };
-      }
+      },
     );
+    // Invalidate to force an immediate re-render
+    apiUtils.messages.getPaginatedMessages.invalidate({ channelId });
   };
 
 /** Generates a function that removes a reaction from the cache. */
@@ -50,11 +52,13 @@ export const removeReactionFromCacheFn =
               page.map((message) => ({
                 ...message,
                 reactions: message.reactions.filter(
-                  (reaction) => reaction.id !== reactionId
+                  (reaction) => reaction.id !== reactionId,
                 ),
-              }))
+              })),
             ) ?? [],
         };
-      }
+      },
     );
+    // Invalidate to force an immediate re-render
+    apiUtils.messages.getPaginatedMessages.invalidate({ channelId });
   };

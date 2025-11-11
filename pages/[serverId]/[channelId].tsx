@@ -335,9 +335,15 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           filter: `channel_id=eq.${channelId}`
         },
         (payload) => {
+          console.log('🔥 DELETE event:', payload);
           const deletedReaction = payload.old;
+          console.log('🔥 Deleted by:', deletedReaction.profile_id, 'Current user:', user.id);
+          console.log('🔥 Should process?', deletedReaction.profile_id !== user.id);
           if (deletedReaction.profile_id !== user.id) {
+            console.log('🔥 Removing reaction:', deletedReaction.id);
             removeReactionFromCache(deletedReaction.id);
+          } else {
+            console.log('🔥 Skipping own deletion (handled optimistically)');
           }
         }
       );
