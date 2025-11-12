@@ -526,6 +526,8 @@ export default function ChannelPage({ user }: ChannelPageProps) {
           console.log('👤 Profile UPDATE event received:', payload);
           // Invalidate the server members query to refetch with updated profile data
           apiUtils.servers.getServerMembers.invalidate({ serverId });
+          // Also invalidate messages query since messages contain embedded author data
+          apiUtils.messages.getPaginatedMessages.invalidate({ channelId });
         }
       )
       .subscribe();
@@ -533,7 +535,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     return () => {
       profileChannel.unsubscribe();
     };
-  }, [serverId, supabase, apiUtils]);
+  }, [serverId, channelId, supabase, apiUtils]);
 
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
