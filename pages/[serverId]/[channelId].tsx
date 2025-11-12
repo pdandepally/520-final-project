@@ -509,6 +509,32 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     };
   }, [user.id, user.email, supabase, onUserJoin, onUserLeave]);
 
+  // Real-time subscription for profile updates
+  useEffect(() => {
+    if (!serverId) return;
+
+    const profileChannel = supabase
+      .channel(`profiles-${serverId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+        },
+        (payload) => {
+          console.log('👤 Profile UPDATE event received:', payload);
+          // Invalidate the server members query to refetch with updated profile data
+          apiUtils.servers.getServerMembers.invalidate({ serverId });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      profileChannel.unsubscribe();
+    };
+  }, [serverId, supabase, apiUtils]);
+
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
 
   useEffect(() => {
