@@ -1,7 +1,8 @@
-import { AzureOpenAI } from "openai";
+import OpenAI from "openai";
 
-export const openai = new AzureOpenAI({
-  baseURL: "https://azureaiapi.cloud.unc.edu/openai",
-  apiKey: process.env.OPENAI_KEY!,
-  apiVersion: "2024-06-01",
-});
+// Make OpenAI optional - only initialize if API key is provided
+export const openai = process.env.OPENAI_KEY
+  ? new OpenAI({
+      apiKey: process.env.OPENAI_KEY,
+    })
+  : null;

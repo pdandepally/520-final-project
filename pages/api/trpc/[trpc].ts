@@ -1,12 +1,3 @@
-/**
- * This routing handler exposes an API endpoing that the client-side tRPC functions use to
- * communicate with the server-side tRPC procedures. Do not modify this file.
- *
- * @author Ajay Gandecha <agandecha@unc.edu>
- * @license MIT
- * @see https://comp426-25f.github.io/
- */
-
 import { createNextApiHandler } from "@trpc/server/adapters/next";
 import { appRouter } from "@/server/api/root";
 import { createTRPCContext } from "@/server/api/trpc";

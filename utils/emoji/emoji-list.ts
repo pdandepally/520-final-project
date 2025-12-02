@@ -1,11 +1,3 @@
-/**
- * Stores a list of all emojis and their categories for the emoji picker.
- *
- * For those who stumble upon this file........ took a long time to get this lol.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
 export const EMOJIS_BY_CATEGORY: Record<string, string[]> = {
   "Smileys & Emotion": [
     "😀",

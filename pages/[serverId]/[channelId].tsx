@@ -1,17 +1,3 @@
-/**
- * This page is the main chat page for a specific channel within a server. It displays
- * all messages in the channel and allows the user to send messages, reactions, and
- * attachments, as well as see these update in real time.
- *
- * The page contains the server channel sidebar and the server user sidebar.
- *
- * The page is loaded with two query parameters: `serverId` and `channelId`, which correspond
- * to the server and channel that the user is currently viewing.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import MessageView from "@/components/server/message-view";
 import { ServerChannelSidebar } from "@/components/server/server-channel-sidebar";
 import ServerHeader from "@/components/server/server-header";
@@ -207,41 +193,6 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     [channelId, apiUtils],
   );
 
-  // [TODO] parnika
-  // Implement real-time updates for messages and reactions from the database.
-  // 
-  // This functionality allows the app to respond to inserts, updates, and deletions
-  // from the `message` database table as they happen in real-time, and just inserts and
-  // deletions from the `reaction` database table as they happen in real-time. Note that
-  // events should triiger *only if* the message / reaction's channel ID matches the current
-  // channel ID (in `channelId`).
-  // 
-  // You will need to choose the correct Supabase realtime method to listen for these events.
-  // 
-  // The notes below describe how your app should respond upon each of these events per table. Note
-  // that if the instructions mention cache operations, all of these functions have already been
-  // defined for you above.
-  // 
-  // 1. `message` table:
-  //    - On INSERT:
-  //        - Parse the new message draft from the payload. If the message author is *NOT* the
-  //          currently logged-in user, add the message to cache.
-  //          Note: We only want this to happen when the message is not sent by the current user
-  //                because otherwise the message will appear on the screen twice.
-  //    - On UPDATE:
-  //        - Parse the updated message draft from the payload and update the message in the cache.
-  //    - On DELETE:
-  //        - Remove the deleted message from the cache.
-  //
-  // 2. `reaction` table:
-  //    - On INSERT:
-  //        - Parse the new reaction from the payload. If the reaction profile is *NOT* the
-  //          currently logged-in user, add the reaction to the cache.
-  //    - On DELETE:
-  //        - Remove the deleted reaction from the cache.
-  //
-  // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
-  // a necessity.
   useEffect(() => {
     if (!channelId) return;
 
@@ -362,38 +313,7 @@ export default function ChannelPage({ user }: ChannelPageProps) {
     );
   }, []);
 
-  // [TODO] parnika
-  // Implement real-time updates for user's online status as they join and leave the app.
-  //
-  // This functionality allows the app to respond to users joining and leaving the app in real-time.
-  // The `onlineUsers` list will then always accurately reflect the users who are currently online.
-  //
-  // You will need to choose the correct Supabase realtime method to listen for these events.
-  //
-  // In our app, the `presence` realtime channel is used to track whether users are online or offline.
-  // When users join the channel, they are added to the list of online users. When they leave the
-  // channel, they are removed from the list of online users. Whenever the user enters the app and
-  // subscribes to the presence channel, they are added to the list of online users for all other
-  // users.
-  //
-  // SIDENOTE: The current implementation of this app tracks *all* users' online statuses app-wide.
-  // This has been done to avoid extreme complexity (managing multiple open channels for each server
-  // and globally send messages based on the users' active channels). In the real world, if you were
-  // to implement and deploy an app like this, you would likely want to track users' online statuses
-  // *only* within the servers that the user is currently viewing!
-  //
-  // The notes below describe how your app should respond upon each of these events. Note that you should
-  // use `onUserJoin` and `onUserLeave` to handle mutating the `onlineUsers` state.
-  //
-  // 1. `join` presence event:
-  //    - Parse the new presence from the payload and add the user to the list of online users. You will
-  //      need to explore the payload here to determine how to extract the user IDs!
-  // 2. `leave` presence event:
-  //    - Parse the left presence from the payload and remove the user from the list of online users. You
-  //      will need to explore the payload here to determine how to extract the user IDs!
-  //
-  // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
-  // a necessity.
+  
   useEffect(() => {
     console.log('👥 Setting up presence tracking for user:', user.id);
     
@@ -574,41 +494,8 @@ export default function ChannelPage({ user }: ChannelPageProps) {
   // to the correct Realtime channel that the user is typing.
   const [isTyping, setIsTyping] = useState(false);
 
-  // [TODO] madhura
-  // Implement real-time updates for users typing in the channel.
-  //
-  // This functionality allows the app to respond to users typing in real-time. This functionality
-  // is often used in chat applications (sometimes as a speech bubble with "..." or as Discord /
-  //  Slack does, "User is typing...").
-  //
-  // You will need to choose the correct Supabase realtime method to listen for these events.
-  //
-  // In our app, we have specific Realtime channels called `channel-<channelId>` (where `<channelId>` is
-  // the ID of the channel the user is currently viewing) that users can subscribe to. When any user starts
-  // typing, a message with event type "typingStart" is sent to the channel containing a payload whose message
-  // is the user ID of the user who is typing. When the user stops typing, a message with event type "typingEnd"
-  // is sent to the channel containing a payload whose message is the user ID of the user zwho stopped typing.
-  //
-  // The notes below describe how your app should respond upon each of these events.
-  // Note that you should use `setTypingUsers` to handle mutating the `typingUsers` state.
-  //
-  // 1. `typingStart` event:
-  //    - Parse the user ID from the payload to add the user to the list of typing users, then add the user.
-  // 2. `typingEnd` event:
-  //    - Parse the user ID from the payload to remove the user from the list of typing users, then remove the user.
-  //
-  // In addition, the `useEffect` should take in `isTyping` as a depedency. Whenever the user's status typing is changed,
-  // the effect will call.
-  //
-  // Subscribe to the event. If the user is typing, send a message with event type "typingStart" to the channel containing
-  // a payload whose message is the user ID of the user who is typing. If the user is not typing, send a message with event
-  // type "typingEnd" to the channel containing a payload whose message is the user ID of the user who stopped typing. This
-  // allows other users to know when we are typing or not!
-  //
-  // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
-  // a necessity.
+  
   useEffect(() => {
-    /* Your implementation here */
 const channel = supabase.channel(`channel-${channelId}`);
     channel
     .on("broadcast", 
@@ -651,31 +538,7 @@ const channel = supabase.channel(`channel-${channelId}`);
     }
   }, [channelId, isTyping, supabase, user]);
 
-  // [TODO] madhura
-  // Implement real-time updates for whenever a user joins / leaves a server or changes their display name /
-  // profile picture.
-  //
-  // This functionality allows the app to respond to users joining / leaving a server or changing their display
-  // name / profile picture in real-time, updating the UI immediately when this occurs.
-  //
-  // You will need to choose the correct Supabase realtime method to listen for these events.
-  //
-  // In our app, we have a Realtime channel called `user-change` that users can subscribe to. When any user joins
-  // a server, leaves a server, changes their display name, or changes their profile picture, a message with event
-  // type "userStatusChange" is sent to the channel. This message contains no payload since this is just a
-  // notification.
-  //
-  // Whenever this event is received, the app should refetch the members of the server to update the UI.
-  // This can be done by refetching the `members` query key manually using `queryUtils`.
-  // @see https://tanstack.com/query/v5/docs/reference/QueryClient/#queryclientrefetchqueries
-  //
-  // To complete this functionality, also see the TODO in: `web/utils/supabase/realtime/broadcasts.ts`
-  //
-  // Remember that since we are working with live subscriptions, cleanup inside of `useEffect` is
-  // a necessity.
-
   useEffect(() => {
-    /* Your implementation here */
  const channel = supabase.channel('user-change');
     channel
     .on('broadcast',

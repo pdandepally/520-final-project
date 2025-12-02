@@ -1,9 +1,3 @@
-/**
- * Shadcn component for the user's profile in the sidebar.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu
- */
 import { ChevronsUpDown, Edit, ImageUp, LogOut } from "lucide-react";
 
 import {

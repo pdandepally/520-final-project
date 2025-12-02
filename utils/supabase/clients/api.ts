@@ -1,12 +1,3 @@
-/**
- * This file defines the Supabase client that is used in the
- * application middleware.
- *
- * @author Ajay Gandecha <agandecha@unc.edu>
- * @license MIT
- * @see https://comp426-25f.github.io/
- */
-
 import { createServerClient, serializeCookieHeader } from "@supabase/ssr";
 import { type NextApiRequest, type NextApiResponse } from "next";
 

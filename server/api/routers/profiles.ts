@@ -1,12 +1,3 @@
-/**
- * tRPC APIs that contains all of the functionality for creating,
- * reading, updating, and deleting data in our database relating to
- * profiles.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { Profile } from "@/server/models/responses";
 import { db } from "@/server/db";
@@ -34,6 +25,7 @@ const getProfile = protectedProcedure
         displayName: true,
         username: true,
         avatarUrl: true,
+        accountType: true,
       },
     });
 
@@ -77,10 +69,34 @@ const handleNewUser = protectedProcedure
   .input(NewProfile)
   .mutation(async ({ ctx, input }) => {
     const { subject } = ctx;
-    const { displayName, username } = input;
-    await db
-      .insert(profilesTable)
-      .values({ id: subject.id, displayName, username });
+    const { displayName, username, accountType } = input;
+
+    try {
+      // Check if profile already exists
+      const existingProfile = await db.query.profilesTable.findFirst({
+        where: eq(profilesTable.id, subject.id),
+      });
+
+      if (existingProfile) {
+        console.log(`Profile already exists for user ${subject.id}`);
+        return; // Profile already exists, no need to create
+      }
+
+      // Create the new profile
+      await db
+        .insert(profilesTable)
+        .values({ id: subject.id, displayName, username, accountType });
+
+      console.log(
+        `Successfully created profile for user ${subject.id} as ${accountType}`,
+      );
+    } catch (error) {
+      console.error(`Error creating profile for user ${subject.id}:`, error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `Failed to create profile: ${error instanceof Error ? error.message : "Unknown error"}`,
+      });
+    }
   });
 
 /**

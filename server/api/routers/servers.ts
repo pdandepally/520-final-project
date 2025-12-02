@@ -1,12 +1,3 @@
-/**
- * tRPC APIs that contains all of the functionality for creating,
- * reading, updating, and deleting data in our database relating to
- * servers.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { Profile, EditedServer, Server } from "@/server/models/responses";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { db } from "@/server/db";

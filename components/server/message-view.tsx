@@ -1,10 +1,3 @@
-/**
- * View that represents an individual message.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { Message, MessageReaction, Profile } from "@/server/models/responses";
 import ProfileAvatar from "../profile/profile-avatar";
 import ProfilePopover from "../profile/profile-popover";

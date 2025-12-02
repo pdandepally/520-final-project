@@ -1,12 +1,3 @@
-/**
- * tRPC APIs that contains all of the functionality for creating,
- * reading, updating, and deleting data in our database relating to
- * messages.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { DraftMessage, Message } from "@/server/models/responses";
 import { getChannelAndEnforceServerMembership } from "../helpers/enforce-membership";

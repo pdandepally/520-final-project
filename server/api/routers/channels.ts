@@ -1,12 +1,3 @@
-/**
- * tRPC APIs that contains all of the functionality for creating,
- * reading, updating, and deleting data in our database relating to
- * channels.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { Channel } from "@/server/models/responses";
 import { db } from "@/server/db";
@@ -94,32 +85,7 @@ const deleteChannel = protectedProcedure
     await db.delete(channelsTable).where(eq(channelsTable.id, channel.id));
   });
 
-// [TODO] madhura
-// Complete the `summarizeChannel` endpoint. This is a new type of endpoint called a
-// *subscription* endpoint. Along with queries and mutations, subscriptions are the
-// final type of tRPC endpoint. You can read more about them here:
-// @see https://trpc.io/docs/server/subscriptions
-//
-// Subscriptions are the tRPC primitive for simulating realtime websocket functionality
-// using tRPC.
-//
-// This endpoint will use OpenAI's GPT model to summarize messages in an Alias channel,
-// by week, for the previoud four weeks that contain messages (ordered chronologically)
-//
-// Example expected output from the AI model might look something like:
-// ```
-// Week 1 (Oct 27, 2025 - Nov 2, 2025)
-// John and Jane compared their favorite pizza slices in New York City.
-//
-// Week 2 (Oct 19, 2025 - Oct 26, 2025)
-// Alice and Bob were gossiping about old high school friends.
-// ```
-//
-// Your task is to write the prompt that instructs the model to produce output
-// in the format specified above for the messages in your channel. The query
-// to fetch the relevant messages has already been provided for you, as well
-// as the setup for how to stream the responses from OpenAI's server through
-// the websocket connection. You only need to modify the `prompt` variable.
+
 const summarizeChannel = protectedProcedure
   .input(ChannelIdentity)
   .subscription(async function* ({ ctx, input, signal }) {
@@ -150,8 +116,6 @@ const summarizeChannel = protectedProcedure
       orderBy: asc(messagesTable.createdAt),
     });
 
-    // [TODO]: madhura -- Write a prompt to generate the output expected using the
-    // provided data from above.
     const prompt = `
     Summarize discussions week by week for the past four weeks that contain messages from a channel. Include the author's first name, date, and discussion summary.
     Only include weeks that have messages when you are considering what constitutes the past four weeks. List the weeks and their summaries in chronological order.
@@ -173,6 +137,12 @@ const summarizeChannel = protectedProcedure
       )
       .join("\n")}
     `;
+
+    if (!openai) {
+      throw new Error(
+        "OpenAI is not configured. Please set OPENAI_KEY environment variable.",
+      );
+    }
 
     // This code calls the Azure OpenAI endpoint and streams the result, token by token,
     // in realtime to the backend server.

@@ -1,10 +1,3 @@
-/**
- * Header to show on each server page.
- *
- * @author Ajay Gandecha <ajay@class.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import {
   ChevronDown,
   Copy,

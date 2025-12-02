@@ -1,11 +1,3 @@
-/**
- * Component that shows emoji options. This should be used as the content for a
- * Shadcn <Popover> component.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { PopoverContent } from "../ui/popover";
 import { EMOJI_CATEGORIES, EMOJIS_BY_CATEGORY } from "@/utils/emoji/emoji-list";
 import { Button } from "../ui/button";

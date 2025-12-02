@@ -1,11 +1,3 @@
-/**
- * Sidebar that is used on the left-hand side of servers to show the channels
- * in the server.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import {
   Sidebar,
   SidebarContent,
