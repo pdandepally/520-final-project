@@ -7,6 +7,7 @@ import { workersApiRouter } from "./routers/workers";
 import { jobPostingsApiRouter } from "./routers/job-postings";
 import { workerJobsApiRouter } from "./routers/worker-jobs";
 import { jobApplicationsRouter } from "./routers/job-applications";
+import { blockedEmailsRouter } from "./routers/blocked-emails";
 
 /** Primary router for the API server. */
 export const appRouter = createTRPCRouter({
@@ -18,6 +19,7 @@ export const appRouter = createTRPCRouter({
   jobPostings: jobPostingsApiRouter,
   workerJobs: workerJobsApiRouter,
   jobApplications: jobApplicationsRouter,
+  blockedEmails: blockedEmailsRouter,
 });
 
 export type AppRouter = typeof appRouter;

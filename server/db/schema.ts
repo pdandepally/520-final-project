@@ -16,6 +16,16 @@ export const profilesTable = pgTable("profiles", {
   username: text("username").notNull(),
   avatarUrl: text("avatar_url"),
   accountType: text("account_type").notNull().default("worker"), // 'worker' or 'employer'
+  birthdate: date("birthdate"),
+});
+
+// Blocked Emails Table (for users under 18)
+export const blockedEmailsTable = pgTable("blocked_emails", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  birthdate: date("birthdate").notNull(),
+  blockedAt: timestamp("blocked_at").notNull().defaultNow(),
+  canRegisterAt: date("can_register_at").notNull(), // The date when they turn 18
 });
 
 export const serversTable = pgTable("servers", {

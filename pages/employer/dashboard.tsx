@@ -199,6 +199,7 @@ export default function EmployerDashboard() {
                       value={jobForm.startDate}
                       onChange={(e) => setJobForm({ ...jobForm, startDate: e.target.value })}
                       className="border-green-300"
+                      style={{ colorScheme: 'light' }}
                     />
                   </div>
                   <div>
@@ -206,8 +207,10 @@ export default function EmployerDashboard() {
                     <Input
                       type="date"
                       value={jobForm.endDate}
+                      min={jobForm.startDate}
                       onChange={(e) => setJobForm({ ...jobForm, endDate: e.target.value })}
                       className="border-green-300"
+                      style={{ colorScheme: 'light' }}
                     />
                   </div>
                 </div>

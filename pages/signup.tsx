@@ -19,9 +19,12 @@ export default function SignUpPage() {
   const [name, setName] = useState("");
   const [handle, setHandle] = useState("");
   const [password, setPassword] = useState("");
+  const [birthdate, setBirthdate] = useState("");
   const [accountType, setAccountType] = useState<"worker" | "employer">("worker");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { mutate: blockEmail } = api.blockedEmails.blockEmail.useMutation();
 
   const { mutate: handleNewUser } = api.profiles.handleNewUser.useMutation({
     onSuccess: async () => {
@@ -42,7 +45,7 @@ export default function SignUpPage() {
     setLoading(true);
     
     // Basic validation
-    if (!email || !password || !name || !handle) {
+    if (!email || !password || !name || !handle || !birthdate) {
       setError("Por favor completa todos los campos requeridos");
       setLoading(false);
       return;
@@ -59,6 +62,30 @@ export default function SignUpPage() {
     if (!emailRegex.test(email)) {
       setError("Por favor ingresa un correo electrónico válido (ej: usuario@ejemplo.com)");
       setLoading(false);
+      return;
+    }
+    
+    // Calculate age
+    const birthDate = new Date(birthdate);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    // Check if user is under 18
+    if (age < 18) {
+      // Block the email and redirect to underage page
+      blockEmail({ email, birthdate }, {
+        onSuccess: () => {
+          router.push("/underage-blocked");
+        },
+        onError: (err) => {
+          console.error("Error blocking email:", err);
+          router.push("/underage-blocked");
+        }
+      });
       return;
     }
     
@@ -89,7 +116,7 @@ export default function SignUpPage() {
       if (data.user) {
         console.log("User created in Supabase Auth:", data.user.id);
         console.log("Calling handleNewUser mutation...");
-        handleNewUser({ displayName: name, username: handle, accountType });
+        handleNewUser({ displayName: name, username: handle, accountType, birthdate });
       } else {
         setError("No se pudo crear el usuario");
         setLoading(false);
@@ -165,6 +192,20 @@ export default function SignUpPage() {
                     disabled={loading}
                   />
                 </div>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="birthdate" className="text-green-800 font-semibold">🎂 {t('auth.birthdate')}</Label>
+                <Input
+                  id="birthdate"
+                  type="date"
+                  value={birthdate}
+                  onChange={(e) => setBirthdate(e.target.value)}
+                  className="border-green-300 focus:border-green-500"
+                  style={{ colorScheme: 'light' }}
+                  required
+                  disabled={loading}
+                  max={new Date().toISOString().split('T')[0]}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="accountType" className="text-green-800 font-semibold">{t('account.accountType')}</Label>

@@ -268,7 +268,7 @@ export default function WorkerDashboard() {
                           type="date"
                           value={jobHistoryForm.startDate}
                           onChange={(e) => setJobHistoryForm({ ...jobHistoryForm, startDate: e.target.value })}
-                          className="border-green-300 bg-white !text-black [&::-webkit-calendar-picker-indicator]:invert"
+                          className="border-green-300 bg-white !text-black"
                           style={{ color: '#000000', caretColor: '#000000', colorScheme: 'light' }}
                         />
                       </div>
@@ -277,8 +277,9 @@ export default function WorkerDashboard() {
                         <Input
                           type="date"
                           value={jobHistoryForm.endDate}
+                          min={jobHistoryForm.startDate}
                           onChange={(e) => setJobHistoryForm({ ...jobHistoryForm, endDate: e.target.value })}
-                          className="border-green-300 bg-white !text-black [&::-webkit-calendar-picker-indicator]:invert"
+                          className="border-green-300 bg-white !text-black"
                           style={{ color: '#000000', caretColor: '#000000', colorScheme: 'light' }}
                         />
                       </div>

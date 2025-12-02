@@ -274,6 +274,7 @@ export default function WorkerDetailPage() {
                           startDate: e.target.value,
                         })
                       }
+                      style={{ colorScheme: 'light' }}
                     />
                   </div>
                   <div>
@@ -282,12 +283,14 @@ export default function WorkerDetailPage() {
                       id="endDate"
                       type="date"
                       value={workHistoryForm.endDate}
+                      min={workHistoryForm.startDate}
                       onChange={(e) =>
                         setWorkHistoryForm({
                           ...workHistoryForm,
                           endDate: e.target.value,
                         })
                       }
+                      style={{ colorScheme: 'light' }}
                     />
                   </div>
                 </div>

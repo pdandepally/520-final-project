@@ -12,7 +12,7 @@ function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   // The excludedRoutes array contains routes that should not be added into the global
   // sidebar layout.
-  const excludedRoutes = ["/login", "/signup", "/worker/dashboard", "/employer/dashboard"];
+  const excludedRoutes = ["/login", "/signup", "/worker/dashboard", "/employer/dashboard", "/underage-blocked"];
 
   // If the current route is in the excludedRoutes array, the page is rendered without
   // the global sidebar layout or providers.

@@ -32,6 +32,7 @@ export const NewProfile = z.object({
   displayName: z.string(),
   username: z.string(),
   accountType: z.enum(["worker", "employer"]).default("worker"),
+  birthdate: z.string().optional(), // ISO date string (YYYY-MM-DD)
 });
 
 // Worker Management Inputs

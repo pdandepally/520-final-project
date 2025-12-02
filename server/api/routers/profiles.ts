@@ -69,7 +69,7 @@ const handleNewUser = protectedProcedure
   .input(NewProfile)
   .mutation(async ({ ctx, input }) => {
     const { subject } = ctx;
-    const { displayName, username, accountType } = input;
+    const { displayName, username, accountType, birthdate } = input;
 
     try {
       // Check if profile already exists
@@ -85,7 +85,13 @@ const handleNewUser = protectedProcedure
       // Create the new profile
       await db
         .insert(profilesTable)
-        .values({ id: subject.id, displayName, username, accountType });
+        .values({
+          id: subject.id,
+          displayName,
+          username,
+          accountType,
+          birthdate,
+        });
 
       console.log(
         `Successfully created profile for user ${subject.id} as ${accountType}`,
