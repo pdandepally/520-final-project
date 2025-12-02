@@ -16,8 +16,8 @@ interface TranslatableJob {
   endDate?: string | null;
   employer?: string;
   position?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
   userId?: string;
 }
 

@@ -1,9 +1,5 @@
 import { createSupabaseServerClient } from "@/utils/supabase/clients/server-props";
-import { api } from "@/utils/trpc/api";
-import { ArrowBigLeftDash } from "lucide-react";
 import { GetServerSidePropsContext } from "next";
-import { useRouter } from "next/router";
-import { useEffect } from "react";
 
 export default function Home() {
   // This component should never render because getServerSideProps

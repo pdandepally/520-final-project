@@ -36,7 +36,7 @@ export default function EmployerDashboard() {
   });
   
   // Get applicants for selected job
-  const { data: applicants, refetch: refetchApplicants } = api.jobApplications.getApplicationsForJob.useQuery(
+  const { data: applicants } = api.jobApplications.getApplicationsForJob.useQuery(
     { jobId: selectedJobForApplicants! },
     { 
       enabled: !!selectedJobForApplicants,
