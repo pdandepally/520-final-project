@@ -1,11 +1,3 @@
-/**
- * Sidebar for the entire app showing all servers that the user is in.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- * @see https://ui.shadcn.com/docs/components/sidebar
- */
-
 import { BotMessageSquare, DoorOpen, Plus } from "lucide-react";
 
 import {

@@ -1,11 +1,3 @@
-/**
- * This file contains utility functions for updating the message data
- * cached by React Query.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { z } from "zod";
 import { DraftMessage, Message, Profile } from "@/server/models/responses";
 import { api } from "@/utils/trpc/api";

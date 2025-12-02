@@ -1,23 +1,3 @@
-/**
- * This setup code defines the tRPC context and procedure stems used by the API.
- *
- * First, each tRPC route is provided context, including:
- * - **subject**: The subject refers to the currently authenticated user, verified
- *   by Supabase auth.
- *
- * Then, two procedure steps are defined:
- * - **publicProcedure**: Standard API routes can be defined using the public procedure stem.
- *   With this procedure, the user does not have to be authenticated.
- * - **protectedProcedure**: Protected API routes, which should be usable only by signed-in users,
- *   can be defined using the protected procedure stem. With this procedure, the user must be
- *   authenticated or else an `unauthorized` error will be thrown. The authenticated user is also
- *   provided to the procedure as context.
- *
- * @author Ajay Gandecha <agandecha@unc.edu>
- * @license MIT
- * @see https://comp426-25f.github.io/
- */
-
 import createApiClient from "@/utils/supabase/clients/api";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";

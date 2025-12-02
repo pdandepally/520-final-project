@@ -1,12 +1,3 @@
-/**
- * This is the client-side entrypoint for the tRPC API. APIs can be accessed using the
- * exported `api` object on the client side.
- *
- * @author Ajay Gandecha <agandecha@unc.edu>
- * @license MIT
- * @see https://comp426-25f.github.io/
- */
-
 import {
   httpBatchLink,
   httpLink,

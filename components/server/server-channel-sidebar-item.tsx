@@ -1,10 +1,3 @@
-/**
- * Single item in the server channel sidebar.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { cn } from "@/lib/utils";
 import { Channel } from "@/server/models/responses";
 import { Hash } from "lucide-react";

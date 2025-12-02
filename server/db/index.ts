@@ -1,12 +1,3 @@
-/**
- * This file exports a `db` object, which serves as the primary reference to the
- * database and the Drizzle ORM.
- *
- * @author Ajay Gandecha <agandecha@unc.edu>
- * @license MIT
- * @see https://comp426-25f.github.io/
- */
-
 import "dotenv/config";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";

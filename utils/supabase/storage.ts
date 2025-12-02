@@ -1,9 +1,3 @@
-/**
- * Helper file that abstracts functionality for uploading images to Supabase storage.
- *
- * @author Ajay Gandecha <agandecha@unc.edu>
- */
-
 import { SupabaseClient } from "@supabase/supabase-js";
 
 export const uploadAttachmentToSupabase = async (

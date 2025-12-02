@@ -1,85 +1,103 @@
-/**
- * This is the login page of the application, allowing users to log in.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createSupabaseComponentClient } from "@/utils/supabase/clients/component";
-import { BotMessageSquare } from "lucide-react";
+import { Sprout } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 
 export default function LoginPage() {
-  // Create necessary hooks for clients and providers.
   const router = useRouter();
   const supabase = createSupabaseComponentClient();
-  // Create states for each field in the form.
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // Handle the sign in request, alerting the user if there is
-  // an error. If the login is successful, the user must be
-  // redirected to the home page.
   const logIn = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
+    setError("");
+    setLoading(true);
+    
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) {
-      window.alert(error);
-    } else {
-      router.push("/");
+    
+    if (loginError) {
+      setError(loginError.message);
+      setLoading(false);
+    } else if (data.user) {
+      // Get user profile to redirect to correct dashboard
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("account_type")
+        .eq("id", data.user.id)
+        .single();
+      
+      const destination = profile?.account_type === "employer" ? "/employer/dashboard" : "/worker/dashboard";
+      router.push(destination);
     }
   };
 
   return (
-    <div className="bg-background flex min-h-[calc(100svh-164px)] flex-col items-center justify-center gap-6 p-6 md:p-10">
-      <div className="w-full max-w-sm">
+    <div className="bg-gradient-to-b from-green-50 to-green-100 flex min-h-screen flex-col items-center justify-center gap-6 p-6 md:p-10">
+      <div className="absolute top-4 right-4">
+        <LanguageToggle />
+      </div>
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col items-center gap-2">
-              <a
-                href="#"
-                className="flex flex-col items-center gap-2 font-medium"
-              >
-                <div className="flex h-8 w-8 items-center justify-center rounded-md">
-                  <BotMessageSquare className="size-6" />
-                </div>
-              </a>
-              <h1 className="text-xl font-bold">Log in to Alias</h1>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <Link href="/signup" className="underline underline-offset-4">
-                  Sign up here!
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-600 text-white">
+                <Sprout className="size-8" />
+              </div>
+              <h1 className="text-2xl font-bold text-green-800">{t('auth.login')}</h1>
+              <p className="text-sm font-semibold" style={{ color: '#15803d' }}>{t('common.system')}</p>
+              <div className="text-center text-sm font-medium" style={{ color: '#000000' }}>
+                {t('auth.noAccount')}{" "}
+                <Link href="/signup" className="text-green-600 font-semibold hover:underline" style={{ color: '#16a34a' }}>
+                  {t('auth.signup')}
                 </Link>
               </div>
             </div>
-            <div className="flex flex-col gap-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
+            <div className="flex flex-col gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-green-800 font-semibold">📧 {t('auth.email')}</Label>
                 <Input
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="m@example.com"
+                  placeholder={t('auth.email').toLowerCase()}
+                  className="border-green-300 focus:border-green-500"
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Password</Label>
+                <Label htmlFor="password" className="text-green-800 font-semibold">🔒 {t('auth.password')}</Label>
                 <Input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  className="border-green-300 focus:border-green-500"
                   required
+                  disabled={loading}
                 />
               </div>
-              <Button className="w-full" onClick={logIn}>
-                Login
+              <Button 
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold" 
+                onClick={logIn}
+                disabled={loading}
+              >
+                {loading ? t('auth.loggingIn') : t('auth.login')}
               </Button>
             </div>
           </div>

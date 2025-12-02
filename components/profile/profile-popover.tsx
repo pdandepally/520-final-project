@@ -1,17 +1,3 @@
-/**
- * Popover that displays profile information. The trigger for the popover
- * is passed into this component as children. For example:
- *
- * ```tsx
- * <ProfilePopover>
- *   <p>Item to open the popover</p>
- * </ProfilePopover>
- * ```
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { z } from "zod";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import ProfileAvatar from "./profile-avatar";

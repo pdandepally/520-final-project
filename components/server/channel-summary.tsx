@@ -28,15 +28,7 @@ export default function ChannelSummary({
 }: ChannelSummaryProps) {
   const [summaryText, setSummaryText] = useState("");
 
-  // [TODO] parnika
-  // Subscribe to the `summarizeChannel` API endpoint, supplying the channel ID
-  // as input. Set the necessary handlers so that:
-  // - On start, set the summary text to ""
-  // - When a new chunk of data is supplied, concatenate it to the summary text.
-  // - On an error, present a toast using `toast.error()`.
-  // The subscription should produce a `resetSummary` function, which can be
-  // achieved using:
-  // `const { reset: resetSummary } = /* your API call here */`
+  
   const { reset: resetSummary } = api.channels.summarizeChannel.useSubscription(
     { channelId },
     {

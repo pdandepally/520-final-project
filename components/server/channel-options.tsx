@@ -1,10 +1,3 @@
-/**
- * Component that shows options for a channel.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { Edit, Settings, Trash } from "lucide-react";
 import { Button } from "../ui/button";
 import {

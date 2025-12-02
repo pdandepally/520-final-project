@@ -1,11 +1,3 @@
-/**
- * Sidebar that is used on the right-hand side of servers to show the users
- * in the server that are online and offline.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import {
   Sidebar,
   SidebarContent,

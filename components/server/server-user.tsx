@@ -1,10 +1,3 @@
-/**
- * Shows a user in the server sidebar list.
- *
- * @author Ajay Gandecha <ajay@cs.unc.edu>
- * @author Jade Keegan <jade@cs.unc.edu>
- */
-
 import { z } from "zod";
 import ProfileAvatar from "../profile/profile-avatar";
 import { SidebarMenuButton } from "../ui/sidebar";
